@@ -1,0 +1,43 @@
+(ns advent-of-code.XXX
+  (:require [clojure.string :as string]))
+
+(def check? #{:one})
+
+(def debug? false)
+
+(defn debug
+  [& args]
+  (when debug?
+    (apply println args)))
+
+(defn check
+  [f expected arg]
+  (println "input    " (apply str (take 70 (str arg))))
+  (println (str "expected: " expected " got: " (f arg))))
+
+(defn read-input []
+  (let [problem-name (subs (str (ns-name *ns*))
+                           (count "advent-of-code."))]
+    (string/split-lines (slurp (str problem-name ".input")))))
+
+;; ######
+;; Part 1
+;; ######
+
+
+(def check- (partial check ))
+
+(when (:one check?)
+  (check- )
+  (check- "?" (read-input)))
+
+;; ######
+;; Part 2
+;; ######
+
+
+(def check- (partial check ))
+
+(when (:two check?)
+  (check- x)
+  (check- "?" (read-input)))
