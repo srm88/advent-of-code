@@ -1,4 +1,4 @@
-(ns advent-of-code.XXX
+(ns advent-of-code.
   (:require [clojure.string :as string]))
 
 (def check? #{:one})
