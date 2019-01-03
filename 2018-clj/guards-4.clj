@@ -1,7 +1,7 @@
 (ns advent-of-code.guards
   (:require [clojure.string :as string]))
 
-(def check? #{:one})
+(def check? #{:one :two})
 
 (def debug? false)
 
@@ -123,8 +123,38 @@
 ;; ######
 
 
-(def check- (partial check nil))
+(defn minute-guard [logs]
+  (let [naps (->> logs (map parse-log) (sort compare-ts) guard-naps)
+        guards (->> naps (map :guard) set)
+        [guard [minute freq]] (->> (for [guard guards]
+                                     [guard (->> naps
+                                                 (filter #(= (:guard %) guard))
+                                                 sleep-counts-by-minute
+                                                 (sort-by val >)
+                                                 first)])
+                                   (into {})
+                                   (sort-by (comp val val) >)
+                                   (first))]
+    (* guard minute)))
+
+(def check-minute-guard (partial check minute-guard))
 
 (when (:two check?)
-  (check- nil)
-  (check- "?" (read-input)))
+  (check-minute-guard 4455 ["[1518-11-01 00:00] Guard #10 begins shift"
+                            "[1518-11-01 00:05] falls asleep"
+                            "[1518-11-01 00:25] wakes up"
+                            "[1518-11-01 00:30] falls asleep"
+                            "[1518-11-01 00:55] wakes up"
+                            "[1518-11-01 23:58] Guard #99 begins shift"
+                            "[1518-11-02 00:40] falls asleep"
+                            "[1518-11-02 00:50] wakes up"
+                            "[1518-11-03 00:05] Guard #10 begins shift"
+                            "[1518-11-03 00:24] falls asleep"
+                            "[1518-11-03 00:29] wakes up"
+                            "[1518-11-04 00:02] Guard #99 begins shift"
+                            "[1518-11-04 00:36] falls asleep"
+                            "[1518-11-04 00:46] wakes up"
+                            "[1518-11-05 00:03] Guard #99 begins shift"
+                            "[1518-11-05 00:45] falls asleep"
+                            "[1518-11-05 00:55] wakes up"])
+  (check-minute-guard "?" (read-input)))
