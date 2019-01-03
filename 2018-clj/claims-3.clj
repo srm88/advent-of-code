@@ -2,7 +2,7 @@
   (:require [clojure.string :as string]
             [clojure.pprint :refer [pprint]]))
 
-(def check? #{:one})
+(def check? #{:one :two})
 
 (def debug? false)
 
@@ -30,7 +30,7 @@
   (let [[id _at offset dimensions] (string/split claim #" ")
         [from-left from-top] (string/split (subs offset 0 (dec (count offset))) #",")
         [width height] (string/split dimensions #"x")]
-    {:id id
+    {:id (Integer/parseInt (subs id 1))
      :from-left (Integer/parseInt from-left)
      :from-top (Integer/parseInt from-top)
      :width (Integer/parseInt width)
@@ -42,6 +42,10 @@
     [(+ (:from-left claim) offset-x)
      (+ (:from-top claim) offset-y)]))
 
+(defn coord-claim-map [claim]
+  (into {} (for [coord (coords-in-claim claim)]
+             [coord 1])))
+
 (defn ->>log [thing]
   (pprint thing)
   thing)
@@ -49,9 +53,7 @@
 (defn claimed-square-inches [claims]
   (->> claims
        (map parse-claim)
-       (map (fn [claim]
-              (into {} (for [coord (coords-in-claim claim)]
-                         [coord 1]))))
+       (map coord-claim-map)
        (apply merge-with +)
        vals
        (filter #(> % 1))
@@ -68,8 +70,25 @@
 ;; ######
 
 
-;(def check- (partial check ))
+(defn overlap? [claim-a claim-b]
+  (->> [claim-a claim-b]
+       (map coord-claim-map)
+       (apply merge-with +)
+       vals
+       (filter #(> % 1))
+       seq))
 
-;(when (:two check?)
-  ;(check- x)
-  ;(check- "?" (read-input)))
+(defn no-overlap [claims]
+  (let [claims (map parse-claim claims)]
+    (->> claims
+         (filter (fn [claim]
+                   (nil? (some (partial overlap? claim)
+                               (filter #(not= % claim) claims)))))
+         first
+         :id)))
+
+(def check-no-overlap (partial check no-overlap))
+
+(when (:two check?)
+  (check-no-overlap 3 ["#1 @ 1,3: 4x4" "#2 @ 3,1: 4x4" "#3 @ 5,5: 2x2"])
+  (check-no-overlap "?" (read-input)))
